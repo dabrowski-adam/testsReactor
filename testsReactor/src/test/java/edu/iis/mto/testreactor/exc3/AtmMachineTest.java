@@ -105,4 +105,16 @@ public class AtmMachineTest {
 
         verify(bankService, times(1)).charge(authenticationToken, money);
     }
+
+    @Test(expected = InsufficientFundsException.class)
+    public void withdraw_emptyAccount_throws() {
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        when(bankService.charge(any(AuthenticationToken.class), any(Money.class))).thenReturn(false);
+
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        atmMachine.withdraw(money, card);
+    }
 }
