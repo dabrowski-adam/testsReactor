@@ -2,10 +2,14 @@ package edu.iis.mto.testreactor.exc3;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Optional;
 
 public class AtmMachineTest {
 
@@ -55,6 +59,17 @@ public class AtmMachineTest {
         AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
 
         Money money = moneyBuilder.withAmount(3).build();
+        Card card = cardBuilder.build();
+
+        atmMachine.withdraw(money, card);
+    }
+
+    @Test(expected = CardAuthorizationException.class)
+    public void withdraw_unauthorized_throws() {
+        when(cardService.authorize(any(Card.class))).thenReturn(Optional.empty());
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.build();
         Card card = cardBuilder.build();
 
         atmMachine.withdraw(money, card);
