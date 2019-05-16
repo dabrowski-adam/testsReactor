@@ -6,7 +6,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 import org.hamcrest.FeatureMatcher;
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,10 +49,9 @@ public class AtmMachineTest {
         Money money = moneyBuilder.build();
         Card card = cardBuilder.build();
 
-        List<Banknote> banknotes = atmMachine.withdraw(money, card).getValue();
-        Integer banknotesValue = banknotes.stream().mapToInt(Banknote::getValue).sum();
+        Payment payment = atmMachine.withdraw(money, card);
 
-        assertThat(banknotesValue, is(money.getAmount()));
+        assertThat(payment, totals(money.getAmount()));
     }
 
     @Test
@@ -65,7 +63,7 @@ public class AtmMachineTest {
 
         List<Banknote> banknotes = atmMachine.withdraw(money, card).getValue();
 
-        assertThat(banknotes, everyItem(currency(is(money.getCurrency()))));
+        assertThat(banknotes, everyItem(currency(money.getCurrency())));
     }
 
     @Test(expected = WrongMoneyAmountException.class)
@@ -170,8 +168,18 @@ public class AtmMachineTest {
         atmMachine.withdraw(money, card);
     }
 
-    private FeatureMatcher<Banknote, Currency> currency(Matcher<Currency> matcher) {
-        return new FeatureMatcher<Banknote, Currency>(matcher, "currency", "currency") {
+    private FeatureMatcher<Payment, Integer> totals(Integer amount) {
+        return new FeatureMatcher<Payment, Integer>(equalTo(amount), "totals", "totals") {
+            @Override
+            protected Integer featureValueOf(Payment actual) {
+                List<Banknote> banknotes = actual.getValue();
+                return banknotes.stream().mapToInt(Banknote::getValue).sum();
+            }
+        };
+    }
+
+    private FeatureMatcher<Banknote, Currency> currency(Currency currency) {
+        return new FeatureMatcher<Banknote, Currency>(equalTo(currency), "currency", "currency") {
             @Override
             protected Currency featureValueOf(Banknote actual) {
                 return actual.getCurrency();
