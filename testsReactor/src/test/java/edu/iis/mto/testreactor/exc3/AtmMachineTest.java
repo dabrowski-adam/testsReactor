@@ -178,6 +178,19 @@ public class AtmMachineTest {
         atmMachine.withdraw(money, card);
 
         verify(bankService, times(1)).startTransaction(authenticationToken);
+        verify(bankService, times(1)).commit(authenticationToken);
+    }
+
+    @Test
+    public void withdraw_commitsTransaction() {
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        atmMachine.withdraw(money, card);
+
+        verify(bankService, times(1)).commit(authenticationToken);
     }
 
     private FeatureMatcher<Payment, Integer> totals(Integer amount) {
