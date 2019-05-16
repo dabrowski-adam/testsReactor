@@ -12,12 +12,17 @@ public class AtmMachineTest {
     private CardProviderService cardService;
     private BankService bankService;
     private MoneyDepot moneyDepot;
+    private Money.Builder moneyBuilder;
+    private Card.Builder cardBuilder;
 
     @Before
     public void setUp() {
         cardService = mock(CardProviderService.class);
         bankService = mock(BankService.class);
         moneyDepot = mock(MoneyDepot.class);
+
+        moneyBuilder = Money.builder().withAmount(10).withCurrency(Currency.PL);
+        cardBuilder = Card.builder().withCardNumber("4840932426207833").withPinNumber(1234);
     }
 
     @Test
@@ -29,8 +34,18 @@ public class AtmMachineTest {
     public void withdraw_zero_throws() {
         AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
 
-        Money money = Money.builder().withAmount(0).withCurrency(Currency.PL).build();
-        Card card = Card.builder().withCardNumber("").withPinNumber(123).build();
+        Money money = moneyBuilder.withAmount(0).build();
+        Card card = cardBuilder.build();
+
+        atmMachine.withdraw(money, card);
+    }
+
+    @Test(expected = WrongMoneyAmountException.class)
+    public void withdraw_negative_throws() {
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.withAmount(-1).build();
+        Card card = cardBuilder.build();
 
         atmMachine.withdraw(money, card);
     }
