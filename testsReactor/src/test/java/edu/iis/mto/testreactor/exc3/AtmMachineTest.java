@@ -117,4 +117,16 @@ public class AtmMachineTest {
 
         atmMachine.withdraw(money, card);
     }
+
+    @Test
+    public void withdraw_releasesBanknotes() {
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        atmMachine.withdraw(money, card);
+
+        verify(moneyDepot, times(1)).releaseBanknotes(anyListOf(Banknote.class));
+    }
 }
