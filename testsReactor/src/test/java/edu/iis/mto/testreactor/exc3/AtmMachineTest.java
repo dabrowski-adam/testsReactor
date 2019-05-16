@@ -49,4 +49,14 @@ public class AtmMachineTest {
 
         atmMachine.withdraw(money, card);
     }
+
+    @Test(expected = WrongMoneyAmountException.class)
+    public void withdraw_notDivisibleByNotes_throws() {
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.withAmount(3).build();
+        Card card = cardBuilder.build();
+
+        atmMachine.withdraw(money, card);
+    }
 }
