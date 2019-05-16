@@ -1,11 +1,12 @@
 package edu.iis.mto.testreactor.exc3;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+import org.hamcrest.FeatureMatcher;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,8 +52,20 @@ public class AtmMachineTest {
 
         List<Banknote> banknotes = atmMachine.withdraw(money, card).getValue();
         Integer banknotesValue = banknotes.stream().mapToInt(Banknote::getValue).sum();
-        
+
         assertThat(banknotesValue, is(money.getAmount()));
+    }
+
+    @Test
+    public void withdraw_releasesRightCurrency() {
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        List<Banknote> banknotes = atmMachine.withdraw(money, card).getValue();
+
+        assertThat(banknotes, everyItem(currency(is(money.getCurrency()))));
     }
 
     @Test(expected = WrongMoneyAmountException.class)
@@ -155,6 +168,15 @@ public class AtmMachineTest {
         AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
 
         atmMachine.withdraw(money, card);
+    }
+
+    private FeatureMatcher<Banknote, Currency> currency(Matcher<Currency> matcher) {
+        return new FeatureMatcher<Banknote, Currency>(matcher, "currency", "currency") {
+            @Override
+            protected Currency featureValueOf(Banknote actual) {
+                return actual.getCurrency();
+            }
+        };
     }
 
 }
