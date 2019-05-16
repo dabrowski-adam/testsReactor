@@ -15,6 +15,7 @@ public class AtmMachineTest {
     private CardProviderService cardService;
     private BankService bankService;
     private MoneyDepot moneyDepot;
+    private AuthenticationToken authenticationToken;
     private Money.Builder moneyBuilder;
     private Card.Builder cardBuilder;
 
@@ -24,9 +25,9 @@ public class AtmMachineTest {
         bankService = mock(BankService.class);
         moneyDepot = mock(MoneyDepot.class);
 
-        AuthenticationToken token = AuthenticationToken.builder().withUserId("").withAuthorizationCode(1).build();
+        authenticationToken = AuthenticationToken.builder().withUserId("").withAuthorizationCode(1).build();
 
-        when(cardService.authorize(any(Card.class))).thenReturn(Optional.of(token));
+        when(cardService.authorize(any(Card.class))).thenReturn(Optional.of(authenticationToken));
         when(bankService.charge(any(AuthenticationToken.class), any(Money.class))).thenReturn(true);
         when(moneyDepot.releaseBanknotes(anyListOf(Banknote.class))).thenReturn(true);
 
@@ -91,5 +92,17 @@ public class AtmMachineTest {
         AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
 
         atmMachine.withdraw(money, card);
+    }
+
+    @Test
+    public void withdraw_chargesAccount() {
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        atmMachine.withdraw(money, card);
+
+        verify(bankService, times(1)).charge(authenticationToken, money);
     }
 }
