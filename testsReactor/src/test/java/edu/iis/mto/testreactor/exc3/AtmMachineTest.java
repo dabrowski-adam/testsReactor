@@ -129,4 +129,16 @@ public class AtmMachineTest {
 
         verify(moneyDepot, times(1)).releaseBanknotes(anyListOf(Banknote.class));
     }
+
+    @Test(expected = MoneyDepotException.class)
+    public void withdraw_noBanknotes_throws() {
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        when(moneyDepot.releaseBanknotes(anyListOf(Banknote.class))).thenReturn(false);
+
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        atmMachine.withdraw(money, card);
+    }
 }
