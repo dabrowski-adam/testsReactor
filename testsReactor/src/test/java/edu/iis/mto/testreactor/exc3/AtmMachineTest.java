@@ -168,6 +168,18 @@ public class AtmMachineTest {
         atmMachine.withdraw(money, card);
     }
 
+    @Test
+    public void withdraw_startsTransaction() {
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        atmMachine.withdraw(money, card);
+
+        verify(bankService, times(1)).startTransaction(authenticationToken);
+    }
+
     private FeatureMatcher<Payment, Integer> totals(Integer amount) {
         return new FeatureMatcher<Payment, Integer>(equalTo(amount), "totals", "totals") {
             @Override
