@@ -3,8 +3,7 @@ package edu.iis.mto.testreactor.exc3;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +23,12 @@ public class AtmMachineTest {
         cardService = mock(CardProviderService.class);
         bankService = mock(BankService.class);
         moneyDepot = mock(MoneyDepot.class);
+
+        AuthenticationToken token = AuthenticationToken.builder().withUserId("").withAuthorizationCode(1).build();
+
+        when(cardService.authorize(any(Card.class))).thenReturn(Optional.of(token));
+        when(bankService.charge(any(AuthenticationToken.class), any(Money.class))).thenReturn(true);
+        when(moneyDepot.releaseBanknotes(anyListOf(Banknote.class))).thenReturn(true);
 
         moneyBuilder = Money.builder().withAmount(10).withCurrency(Currency.PL);
         cardBuilder = Card.builder().withCardNumber("4840932426207833").withPinNumber(1234);
@@ -64,13 +69,26 @@ public class AtmMachineTest {
         atmMachine.withdraw(money, card);
     }
 
-    @Test(expected = CardAuthorizationException.class)
-    public void withdraw_unauthorized_throws() {
-        when(cardService.authorize(any(Card.class))).thenReturn(Optional.empty());
+    @Test
+    public void withdraw_triesToAuthorizeCard() {
         AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
 
         Money money = moneyBuilder.build();
         Card card = cardBuilder.build();
+
+        atmMachine.withdraw(money, card);
+
+        verify(cardService, times(1)).authorize(card);
+    }
+
+    @Test(expected = CardAuthorizationException.class)
+    public void withdraw_unauthorized_throws() {
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        when(cardService.authorize(card)).thenReturn(Optional.empty());
+
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
 
         atmMachine.withdraw(money, card);
     }
