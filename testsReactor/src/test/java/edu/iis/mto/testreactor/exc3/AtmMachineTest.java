@@ -193,6 +193,20 @@ public class AtmMachineTest {
         verify(bankService, times(1)).commit(authenticationToken);
     }
 
+//    @Test
+//    public void withdraw_exception_abortsTransaction() {
+//        when(bankService.charge(any(AuthenticationToken.class), any(Money.class))).thenReturn(false);
+//
+//        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+//
+//        Money money = moneyBuilder.build();
+//        Card card = cardBuilder.build();
+//
+//        atmMachine.withdraw(money, card);
+//
+//        verify(bankService, times(1)).abort(authenticationToken);
+//    }
+
     private FeatureMatcher<Payment, Integer> totals(Integer amount) {
         return new FeatureMatcher<Payment, Integer>(equalTo(amount), "totals", "totals") {
             @Override
