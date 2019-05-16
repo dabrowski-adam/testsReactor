@@ -1,5 +1,6 @@
 package edu.iis.mto.testreactor.exc3;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
@@ -8,6 +9,7 @@ import static org.mockito.Mockito.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 public class AtmMachineTest {
@@ -38,6 +40,19 @@ public class AtmMachineTest {
     @Test
     public void itCompiles() {
         assertThat(true, equalTo(true));
+    }
+
+    @Test
+    public void withdraw_releasesRightAmount() {
+        AtmMachine atmMachine = new AtmMachine(cardService, bankService, moneyDepot);
+
+        Money money = moneyBuilder.build();
+        Card card = cardBuilder.build();
+
+        List<Banknote> banknotes = atmMachine.withdraw(money, card).getValue();
+        Integer banknotesValue = banknotes.stream().mapToInt(Banknote::getValue).sum();
+        
+        assertThat(banknotesValue, is(money.getAmount()));
     }
 
     @Test(expected = WrongMoneyAmountException.class)
@@ -141,4 +156,5 @@ public class AtmMachineTest {
 
         atmMachine.withdraw(money, card);
     }
+
 }
